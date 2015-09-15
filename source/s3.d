@@ -30,9 +30,7 @@ class S3Client
 
 		auto date = Clock.currTime(UTC()).toRFC822DateTime();
 
-		assert(request.content_size <= uint.max, "uploading files bigger than uint.max isn't supported yet");
-
-		client.contentLength = cast(uint)request.content_size;
+		client.contentLength = request.content_size;
 		client.addRequestHeader("Date", date);
 		client.addRequestHeader("x-amz-acl", "public-read");
 		client.addRequestHeader("Content-Type", "image/jpeg");
@@ -110,6 +108,8 @@ auto putObjectRequest(string bucket, string key, string file)
 
 	enum chunk_size = 16 * 1024; // 16 KiB
 	auto file_ = File(file, "r");
+
+	assert(file_.size <= uint.max, "uploading files bigger than uint.max isn't supported yet");
 
 	return PutObjectRequest!(File.ByChunk)(bucket, key, file_.byChunk(chunk_size), cast(uint)file_.size);
 }
