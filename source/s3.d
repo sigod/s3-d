@@ -30,7 +30,15 @@ class S3Client
 
 		auto date = Clock.currTime(UTC()).toRFC822DateTime();
 
-		client.contentLength = request.content_size;
+		static if (!__traits(compiles, { HTTP client; client.contentLength = ulong.max; })) {
+			assert(request.content_size <= uint.max, "uploading files bigger than uint.max isn't supported "
+												   ~ "under x86 platform in this version of Phobos");
+
+			client.contentLength = cast(uint)request.content_size;
+		}
+		else
+			client.contentLength = request.content_size;
+
 		client.addRequestHeader("Date", date);
 		client.addRequestHeader("x-amz-acl", "public-read");
 		client.addRequestHeader("Content-Type", "image/jpeg");
@@ -99,7 +107,7 @@ struct PutObjectRequest(Range)
 	string bucket;
 	string key;
 	Range content;
-	uint content_size;
+	ulong content_size;
 }
 
 auto putObjectRequest(string bucket, string key, string file)
@@ -109,7 +117,5 @@ auto putObjectRequest(string bucket, string key, string file)
 	enum chunk_size = 16 * 1024; // 16 KiB
 	auto file_ = File(file, "r");
 
-	assert(file_.size <= uint.max, "uploading files bigger than uint.max isn't supported yet");
-
-	return PutObjectRequest!(File.ByChunk)(bucket, key, file_.byChunk(chunk_size), cast(uint)file_.size);
+	return PutObjectRequest!(File.ByChunk)(bucket, key, file_.byChunk(chunk_size), file_.size);
 }
