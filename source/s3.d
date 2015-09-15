@@ -1,7 +1,7 @@
 module s3;
 
 private {
-	import helpers.rfc822date;
+	import helpers;
 
 	import std.datetime : Clock, UTC;
 	import std.exception : enforce;
@@ -88,7 +88,6 @@ class S3Client
 
 	private string _authHeader(string method, string md5, string type, string date, string cannedResource, string x_amz = "")
 	{
-		import helpers.hmac;
 		import std.base64;
 		import std.format : format;
 		import std.utf : toUTF8;
