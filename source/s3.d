@@ -1,7 +1,11 @@
 module s3;
 
 private {
+	import helpers;
+
+	import std.datetime : Clock, UTC;
 	import std.exception : enforce;
+	import std.net.curl;
 	import std.range;
 }
 
@@ -20,10 +24,6 @@ class S3Client
 
 	void putObject(R)(PutObjectRequest!R request)
 	{
-		import helpers.rfc822date;
-		import std.datetime;
-		import std.net.curl;
-
 		auto client = HTTP(request.bucket ~ "." ~ endpoint ~ request.key);
 
 		client.method = HTTP.Method.put;
@@ -78,9 +78,24 @@ class S3Client
 		enforce(client.statusLine.code == 200);
 	}
 
+	void deleteObject(string bucket, string key)
+	{
+		auto client = HTTP(bucket ~ "." ~ endpoint ~ key);
+
+		client.method = HTTP.Method.del;
+
+		auto date = Clock.currTime(UTC()).toRFC822DateTime();
+
+		client.addRequestHeader("Date", date);
+		client.addRequestHeader("Authorization", _authHeader("DELETE", "", "", date, _cannedResource(bucket, key)));
+
+		client.perform();
+
+		enforce(client.statusLine.code == 204);
+	}
+
 	private string _authHeader(string method, string md5, string type, string date, string cannedResource, string x_amz = "")
 	{
-		import helpers.hmac;
 		import std.base64;
 		import std.format : format;
 		import std.utf : toUTF8;
