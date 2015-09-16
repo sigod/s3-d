@@ -39,7 +39,7 @@ class S3Client
 
 		static if (!__traits(compiles, { HTTP client; client.contentLength = ulong.max; })) {
 			assert(request.content_size <= uint.max, "uploading files bigger than uint.max isn't supported "
-												   ~ "under x86 platform in this version of Phobos");
+								~ "under x86 platform in this version of Phobos");
 
 			client.contentLength = cast(uint)request.content_size;
 		}
