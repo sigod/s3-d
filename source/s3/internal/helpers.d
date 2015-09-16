@@ -1,3 +1,12 @@
+/**
+	Helper functions.
+
+	`hmac_sha1` and `toRFC822DateTime` functions will become obsolete in future versions of Photos.
+
+	Copyright: © 2015 sigod
+	License: Subject to the terms of the MIT license, as written in the included LICENSE file.
+	Authors: sigod
+*/
 module s3.internal.helpers;
 
 ubyte[20] hmac_sha1(const(ubyte)[] key, const(ubyte)[] message)
