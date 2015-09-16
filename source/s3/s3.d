@@ -119,6 +119,10 @@ class S3Client
 
 	private string _cannedResource(string bucket, string key)
 	{
+		import std.algorithm : startsWith;
+
+		assert(key.startsWith('/'), "keys must always start with `/`");
+
 		return "/" ~ bucket ~ key;
 	}
 }
