@@ -1,4 +1,4 @@
-module helpers;
+module s3.internal.helpers;
 
 ubyte[20] hmac_sha1(const(ubyte)[] key, const(ubyte)[] message)
 {

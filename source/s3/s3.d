@@ -1,7 +1,7 @@
-module s3;
+module s3.s3;
 
 private {
-	import helpers;
+	import s3.internal.helpers;
 
 	import std.datetime : Clock, UTC;
 	import std.exception : enforce;
