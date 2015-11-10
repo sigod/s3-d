@@ -145,3 +145,25 @@ auto putObjectRequest(string bucket, string key, string file)
 
 	return PutObjectRequest!(File.ByChunk)(bucket, key, file_.byChunk(chunk_size), file_.size);
 }
+
+auto putObjectRequest(R)(string bucket, string key, R range, ulong length)
+{
+	enum chunk_size = 16 * 1024; // 16 KiB
+	auto byChunks = range.chunks(chunk_size);
+
+	return PutObjectRequest!(typeof(byChunks))(bucket, key, byChunks, length);
+}
+
+auto putObjectRequest(R)(string bucket, string key, R range)
+	if (hasLength!R)
+{
+	return putObjectRequest(bucket, key, range, range.walkLength);
+}
+
+unittest
+{
+	ubyte[] data = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+	assert(putObjectRequest("", "", data, data.length).content_size == data.length);
+	assert(putObjectRequest("", "", data).content_size == data.length);
+}
