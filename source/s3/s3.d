@@ -16,6 +16,18 @@ private {
 	import std.range;
 }
 
+enum CannedACL : string
+{
+	none			 = null,
+	private_		 = "private",
+	publicRead		 = "public-read",
+	publicReadWrite		 = "public-read-write",
+	authenticatedRead	 = "authenticated-read",
+	bucketOwnerRead		 = "bucket-owner-read",
+	bucketOwnerFullControl	 = "bucket-owner-full-control",
+	logDeliveryWrite	 = "log-delivery-write"
+}
+
 class S3Client
 {
 	private string _access_key;
@@ -47,10 +59,13 @@ class S3Client
 			client.contentLength = request.content_size;
 
 		client.addRequestHeader("Date", date);
-		client.addRequestHeader("x-amz-acl", "public-read");
+
+		if (request.acl != CannedACL.none)
+			client.addRequestHeader("x-amz-acl", request.acl);
+
 		client.addRequestHeader("Content-Type", "image/jpeg");
 		client.addRequestHeader("Authorization",
-			_authHeader("PUT", "", "image/jpeg", date, _cannedResource(request.bucket, request.key), "x-amz-acl:public-read")
+			_authHeader("PUT", "", "image/jpeg", date, _cannedResource(request.bucket, request.key), request.acl)
 		);
 
 		void[] m = void;
@@ -101,17 +116,21 @@ class S3Client
 		enforce(client.statusLine.code == 204);
 	}
 
-	private string _authHeader(string method, string md5, string type, string date, string cannedResource, string x_amz = "")
+	private string _authHeader(string method, string md5, string type, string date, string cannedResource, string acl = null)
 	{
 		import std.base64;
 		import std.format : format;
 		import std.utf : toUTF8;
 		import std.string : representation;
 
+		string x_amx = "";
+		if (acl.length)
+			x_amx = "x-amz-acl:" ~ acl ~ "\n";
+
 		string part = format("%s\n%s\n%s\n%s\n", method, md5, type, date);
 		string signature = Base64.encode(hmac_sha1(
 			_secret_key.representation,
-			toUTF8(part ~ (x_amz == "" ? "" : x_amz ~ "\n") ~ cannedResource).representation
+			toUTF8(part ~ x_amx ~ cannedResource).representation
 		));
 
 		return format("AWS %s:%s", _access_key, signature);
@@ -134,6 +153,8 @@ struct PutObjectRequest(Range)
 	string key;
 	Range content;
 	ulong content_size;
+
+	CannedACL acl;
 }
 
 auto putObjectRequest(string bucket, string key, string file)
