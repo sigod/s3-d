@@ -4,6 +4,7 @@
 	"license": "MIT",
 	"copyright": "Copyright © 2015, sigod",
 	"authors": ["sigod"],
+	"libs": ["curl"],
 	"dependencies": {
 	}
 }
