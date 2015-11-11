@@ -16,17 +16,28 @@ private {
 	import std.range;
 }
 
-enum CannedACL : string
+enum CannedACL : byte
 {
-	none			 = null,
-	private_		 = "private",
-	publicRead		 = "public-read",
-	publicReadWrite		 = "public-read-write",
-	authenticatedRead	 = "authenticated-read",
-	bucketOwnerRead		 = "bucket-owner-read",
-	bucketOwnerFullControl	 = "bucket-owner-full-control",
-	logDeliveryWrite	 = "log-delivery-write"
+	none = 0,
+	private_,
+	publicRead,
+	publicReadWrite,
+	authenticatedRead,
+	bucketOwnerRead,
+	bucketOwnerFullControl,
+	logDeliveryWrite
 }
+
+private immutable string[] g_acl = [
+		null,
+		"private",
+		"public-read",
+		"public-read-write",
+		"authenticated-read",
+		"bucket-owner-read",
+		"bucket-owner-full-control",
+		"log-delivery-write"
+	];
 
 class S3Client
 {
@@ -61,11 +72,11 @@ class S3Client
 		client.addRequestHeader("Date", date);
 
 		if (request.acl != CannedACL.none)
-			client.addRequestHeader("x-amz-acl", request.acl);
+			client.addRequestHeader("x-amz-acl", g_acl[request.acl]);
 
 		client.addRequestHeader("Content-Type", "image/jpeg");
 		client.addRequestHeader("Authorization",
-			_authHeader("PUT", "", "image/jpeg", date, _cannedResource(request.bucket, request.key), request.acl)
+			_authHeader("PUT", "", "image/jpeg", date, _cannedResource(request.bucket, request.key), g_acl[request.acl])
 		);
 
 		void[] m = void;
